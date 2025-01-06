@@ -11,9 +11,26 @@ import (
 
 	"employee-manager/db"
 	"employee-manager/handlers"
+	"employee-manager/models"
 	"employee-manager/repositories"
 	"employee-manager/services"
 )
+
+func AppHandler(fn func(http.ResponseWriter, *http.Request) error) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if err := fn(w, r); err != nil {
+			if err, ok := err.(*models.AppError); ok {
+				if err.Code != 0 {
+					http.Error(w, err.Error(), err.Code)
+					return
+				}
+			}
+
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	}
+}
 
 func main() {
 	err := godotenv.Load(".env")
@@ -33,7 +50,7 @@ func main() {
 	r.Use(middleware.Heartbeat("/ping"))
 
 	r.Route("/v1", func(r chi.Router) {
-		r.Post("/auth", authHandler.HandleRegisterLoginManager)
+		r.Post("/auth", AppHandler(authHandler.HandleRegisterLoginManager))
 	})
 
 	http.ListenAndServe(":8080", r)

@@ -19,7 +19,7 @@ func NewAuthHandler(authService services.AuthService) Handler {
 	return Handler{authService}
 }
 
-func (h *Handler) HandleRegisterLoginManager(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) HandleRegisterLoginManager(w http.ResponseWriter, r *http.Request) error {
 	decoder := json.NewDecoder(r.Body)
 	payload := struct {
 		Email    string `json:"email" validate:"required,email"`
@@ -27,16 +27,14 @@ func (h *Handler) HandleRegisterLoginManager(w http.ResponseWriter, r *http.Requ
 		Action   string `json:"action" validate:"required,oneof=create login"`
 	}{}
 	if err := decoder.Decode(&payload); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		return err
 	}
 
 	validate := validator.New(validator.WithRequiredStructEnabled())
 	if err := validate.Struct(payload); err != nil {
 		for _, err := range err.(validator.ValidationErrors) {
 			validationErr := fmt.Errorf("validation for '%s' failed", err.Field())
-			http.Error(w, validationErr.Error(), http.StatusBadRequest)
-			return
+			return models.NewError(http.StatusBadRequest, validationErr.Error())
 		}
 	}
 
@@ -45,8 +43,7 @@ func (h *Handler) HandleRegisterLoginManager(w http.ResponseWriter, r *http.Requ
 		Password: payload.Password,
 	})
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		return err
 	}
 
 	response := struct {
@@ -57,13 +54,13 @@ func (h *Handler) HandleRegisterLoginManager(w http.ResponseWriter, r *http.Requ
 		Token: newManager.Token,
 	}
 
-	fmt.Printf("payload %+v \n", payload)
 	res, err := json.Marshal(response)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		return err
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(res)
+
+	return nil
 }

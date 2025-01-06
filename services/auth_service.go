@@ -1,7 +1,10 @@
 package services
 
 import (
+	"net/http"
+
 	"github.com/go-chi/jwtauth/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 
 	"employee-manager/models"
 	"employee-manager/repositories"
@@ -18,6 +21,9 @@ func NewAuthService(managerRepository repositories.ManagerRepository) AuthServic
 func (s *AuthService) CreateManager(manager models.Manager) (*models.Manager, error) {
 	newManager, err := s.managerRepository.CreateManager(manager)
 	if err != nil {
+		if pgErr, ok := err.(*pgconn.PgError); ok && pgErr.Code == "23505" {
+			return nil, models.NewError(http.StatusConflict, "Email is already taken")
+		}
 		return nil, err
 	}
 
