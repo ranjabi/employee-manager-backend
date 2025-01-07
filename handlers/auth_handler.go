@@ -7,6 +7,7 @@ import (
 
 	"github.com/go-playground/validator/v10"
 
+	"employee-manager/lib"
 	"employee-manager/models"
 	"employee-manager/services"
 )
@@ -27,7 +28,7 @@ func (h *Handler) HandleRegisterLoginManager(w http.ResponseWriter, r *http.Requ
 		Action   string `json:"action" validate:"required,oneof=create login"`
 	}{}
 	if err := decoder.Decode(&payload); err != nil {
-		return err
+		return models.NewError(http.StatusBadRequest, err.Error())
 	}
 
 	validate := validator.New(validator.WithRequiredStructEnabled())
@@ -38,29 +39,51 @@ func (h *Handler) HandleRegisterLoginManager(w http.ResponseWriter, r *http.Requ
 		}
 	}
 
-	newManager, err := h.authService.CreateManager(models.Manager{
-		Email:    payload.Email,
-		Password: payload.Password,
-	})
-	if err != nil {
-		return err
-	}
+	switch payload.Action {
+	case "create":
+		newManager, err := h.authService.CreateManager(models.Manager{
+			Email:    payload.Email,
+			Password: payload.Password,
+		})
+		if err != nil {
+			return err
+		}
 
-	response := struct {
-		Email string `json:"email"`
-		Token string `json:"token"`
-	}{
-		Email: newManager.Email,
-		Token: newManager.Token,
-	}
+		response := struct {
+			Email string `json:"email"`
+			Token string `json:"token"`
+		}{
+			Email: newManager.Email,
+			Token: newManager.Token,
+		}
 
-	res, err := json.Marshal(response)
-	if err != nil {
-		return err
-	}
+		res, err := json.Marshal(response)
+		if err != nil {
+			return err
+		}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(res)
+		lib.WriteJsonResponse(w, http.StatusCreated, res)
+	case "login":
+		manager, err := h.authService.Login(payload.Email, payload.Password)
+		if err != nil {
+			return err
+		}
+
+		response := struct {
+			Email string `json:"email"`
+			Token string `json:"token"`
+		}{
+			Email: manager.Email,
+			Token: manager.Token,
+		}
+
+		res, err := json.Marshal(response)
+		if err != nil {
+			return err
+		}
+
+		lib.WriteJsonResponse(w, http.StatusOK, res)
+	}
 
 	return nil
 }
