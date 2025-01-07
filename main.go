@@ -10,6 +10,7 @@ import (
 	"github.com/go-chi/jwtauth/v5"
 	"github.com/joho/godotenv"
 
+	"employee-manager/constants"
 	"employee-manager/db"
 	"employee-manager/handlers"
 	"employee-manager/models"
@@ -61,11 +62,12 @@ func main() {
 
 		// protected
 		r.Group(func(r chi.Router) {
-			tokenAuth := jwtauth.New("HS256", []byte("secret"), nil)
+			tokenAuth := jwtauth.New(constants.HASH_ALG, []byte(constants.JWT_SECRET), nil)
 			r.Use(jwtauth.Verifier(tokenAuth))
 			r.Use(jwtauth.Authenticator(tokenAuth))
 
 			r.Get("/user", AppHandler(managerHandler.HandleGetProfile))
+			r.Patch("/user", AppHandler(managerHandler.HandleUpdateProfile))
 		})
 	})
 

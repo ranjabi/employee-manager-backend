@@ -9,14 +9,10 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 	"golang.org/x/crypto/bcrypt"
 
+	"employee-manager/constants"
 	"employee-manager/models"
 	"employee-manager/repositories"
 )
-
-var saltRound int = 10
-var jwtSecret string = "secret"
-var hashAlg string = "HS256"
-var uniqueViolationErrorCode string = "23505"
 
 type AuthService struct {
 	managerRepository repositories.ManagerRepository
@@ -27,12 +23,12 @@ func NewAuthService(managerRepository repositories.ManagerRepository) AuthServic
 }
 
 func HashPassword(password string) (string, error) {
-	bytes, err := bcrypt.GenerateFromPassword([]byte(password), saltRound)
+	bytes, err := bcrypt.GenerateFromPassword([]byte(password), constants.SALT_ROUND)
 	return string(bytes), err
 }
 
 func CreateClaims(manager *models.Manager) (string, error) {
-	tokenAuth := jwtauth.New(hashAlg, []byte(jwtSecret), nil)
+	tokenAuth := jwtauth.New(constants.HASH_ALG, []byte(constants.JWT_SECRET), nil)
 	claims := map[string]any{
 		"manager_id":    manager.Id,
 		"manager_email": manager.Email,
@@ -54,7 +50,7 @@ func (s *AuthService) CreateManager(manager models.Manager) (*models.Manager, er
 
 	newManager, err := s.managerRepository.Save(manager)
 	if err != nil {
-		if pgErr, ok := err.(*pgconn.PgError); ok && pgErr.Code == uniqueViolationErrorCode {
+		if pgErr, ok := err.(*pgconn.PgError); ok && pgErr.Code == constants.UNIQUE_VIOLATION_ERROR_CODE {
 			return nil, models.NewError(http.StatusConflict, "Email is already taken")
 		}
 		return nil, err

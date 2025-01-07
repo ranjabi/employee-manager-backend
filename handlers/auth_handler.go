@@ -21,16 +21,14 @@ func NewAuthHandler(authService services.AuthService) AuthHandler {
 }
 
 func (h *AuthHandler) HandleRegisterLoginManager(w http.ResponseWriter, r *http.Request) error {
-	decoder := json.NewDecoder(r.Body)
 	payload := struct {
 		Email    string `json:"email" validate:"required,email"`
 		Password string `json:"password" validate:"required,min=8,max=32"`
 		Action   string `json:"action" validate:"required,oneof=create login"`
 	}{}
-	if err := decoder.Decode(&payload); err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
 		return models.NewError(http.StatusBadRequest, err.Error())
 	}
-
 	validate := validator.New(validator.WithRequiredStructEnabled())
 	if err := validate.Struct(payload); err != nil {
 		for _, err := range err.(validator.ValidationErrors) {
