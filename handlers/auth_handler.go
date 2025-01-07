@@ -12,15 +12,15 @@ import (
 	"employee-manager/services"
 )
 
-type Handler struct {
+type AuthHandler struct {
 	authService services.AuthService
 }
 
-func NewAuthHandler(authService services.AuthService) Handler {
-	return Handler{authService}
+func NewAuthHandler(authService services.AuthService) AuthHandler {
+	return AuthHandler{authService}
 }
 
-func (h *Handler) HandleRegisterLoginManager(w http.ResponseWriter, r *http.Request) error {
+func (h *AuthHandler) HandleRegisterLoginManager(w http.ResponseWriter, r *http.Request) error {
 	decoder := json.NewDecoder(r.Body)
 	payload := struct {
 		Email    string `json:"email" validate:"required,email"`
@@ -56,7 +56,6 @@ func (h *Handler) HandleRegisterLoginManager(w http.ResponseWriter, r *http.Requ
 			Email: newManager.Email,
 			Token: newManager.Token,
 		}
-
 		res, err := json.Marshal(response)
 		if err != nil {
 			return err
@@ -76,7 +75,6 @@ func (h *Handler) HandleRegisterLoginManager(w http.ResponseWriter, r *http.Requ
 			Email: manager.Email,
 			Token: manager.Token,
 		}
-
 		res, err := json.Marshal(response)
 		if err != nil {
 			return err

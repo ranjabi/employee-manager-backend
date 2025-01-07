@@ -17,6 +17,21 @@ func NewManagerRepository(ctx context.Context, pgConn *pgxpool.Pool) ManagerRepo
 	return ManagerRepository{ctx, pgConn}
 }
 
+func (r *ManagerRepository) FindById(id string) (*models.Manager, error) {
+	query := `SELECT * FROM managers WHERE id = @id`
+	args := pgx.NamedArgs{
+		"id": id,
+	}
+
+	rows, _ := r.pgConn.Query(r.ctx, query, args)
+	manager, err := pgx.CollectExactlyOneRow(rows, pgx.RowToStructByName[models.Manager])
+	if err != nil {
+		return nil, err
+	}
+
+	return &manager, nil
+}
+
 func (r *ManagerRepository) FindByEmail(email string) (*models.Manager, error) {
 	query := `SELECT * FROM managers WHERE email = @email`
 	args := pgx.NamedArgs{

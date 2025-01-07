@@ -13,7 +13,7 @@ import (
 	"employee-manager/repositories"
 )
 
-var saltRound int = 14
+var saltRound int = 10
 var jwtSecret string = "secret"
 var hashAlg string = "HS256"
 var uniqueViolationErrorCode string = "23505"
@@ -31,6 +31,20 @@ func HashPassword(password string) (string, error) {
 	return string(bytes), err
 }
 
+func CreateClaims(manager *models.Manager) (string, error) {
+	tokenAuth := jwtauth.New(hashAlg, []byte(jwtSecret), nil)
+	claims := map[string]any{
+		"manager_id":    manager.Id,
+		"manager_email": manager.Email,
+	}
+	_, tokenString, err := tokenAuth.Encode(claims)
+	if err != nil {
+		return "", err
+	}
+
+	return tokenString, nil
+}
+
 func (s *AuthService) CreateManager(manager models.Manager) (*models.Manager, error) {
 	hashedPassword, err := HashPassword(manager.Password)
 	if err != nil {
@@ -46,17 +60,12 @@ func (s *AuthService) CreateManager(manager models.Manager) (*models.Manager, er
 		return nil, err
 	}
 
-	tokenAuth := jwtauth.New(hashAlg, []byte(jwtSecret), nil)
-	claims := map[string]any{
-		"manager_id":    newManager.Id,
-		"manager_email": newManager.Email,
-	}
-	_, tokenString, err := tokenAuth.Encode(claims)
+	token, err := CreateClaims(newManager)
 	if err != nil {
 		return nil, err
 	}
 
-	newManager.Token = tokenString
+	newManager.Token = token
 
 	return newManager, nil
 }
@@ -64,20 +73,6 @@ func (s *AuthService) CreateManager(manager models.Manager) (*models.Manager, er
 func CheckPasswordHash(hash, password string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
 	return err != nil
-}
-
-func CreateClaims(manager *models.Manager) (string, error) {
-	tokenAuth := jwtauth.New(hashAlg, []byte(jwtSecret), nil)
-	claims := map[string]any{
-		"manager_id":    manager.Id,
-		"manager_email": manager.Email,
-	}
-	_, tokenString, err := tokenAuth.Encode(claims)
-	if err != nil {
-		return "", err
-	}
-
-	return tokenString, nil
 }
 
 func (s *AuthService) Login(email string, password string) (*models.Manager, error) {

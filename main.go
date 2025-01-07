@@ -7,6 +7,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/jwtauth/v5"
 	"github.com/joho/godotenv"
 
 	"employee-manager/db"
@@ -39,18 +40,33 @@ func main() {
 	}
 
 	ctx := context.Background()
-	r := chi.NewRouter()
 	pgConn := db.Setup(ctx)
 
 	managerRepository := repositories.NewManagerRepository(ctx, pgConn)
 	authService := services.NewAuthService(managerRepository)
 	authHandler := handlers.NewAuthHandler(authService)
 
+	managerService := services.NewManagerService(managerRepository)
+	managerHandler := handlers.NewManagerHandler(managerService)
+
+	r := chi.NewRouter()
 	r.Use(middleware.Logger)
 	r.Use(middleware.Heartbeat("/ping"))
 
 	r.Route("/v1", func(r chi.Router) {
-		r.Post("/auth", AppHandler(authHandler.HandleRegisterLoginManager))
+		// public
+		r.Group(func(r chi.Router) {
+			r.Post("/auth", AppHandler(authHandler.HandleRegisterLoginManager))
+		})
+
+		// protected
+		r.Group(func(r chi.Router) {
+			tokenAuth := jwtauth.New("HS256", []byte("secret"), nil)
+			r.Use(jwtauth.Verifier(tokenAuth))
+			r.Use(jwtauth.Authenticator(tokenAuth))
+
+			r.Get("/user", AppHandler(managerHandler.HandleGetProfile))
+		})
 	})
 
 	http.ListenAndServe(":8080", r)
