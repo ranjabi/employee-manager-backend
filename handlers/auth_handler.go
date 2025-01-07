@@ -56,12 +56,11 @@ func (h *AuthHandler) HandleRegisterLoginManager(w http.ResponseWriter, r *http.
 			Email: newManager.Email,
 			Token: newManager.Token,
 		}
-		res, err := json.Marshal(response)
+		lib.SetJsonResponse(w, http.StatusOK)
+		err = json.NewEncoder(w).Encode(response)
 		if err != nil {
 			return err
 		}
-
-		lib.WriteJsonResponse(w, http.StatusCreated, res)
 	case "login":
 		manager, err := h.authService.Login(payload.Email, payload.Password)
 		if err != nil {
@@ -75,12 +74,11 @@ func (h *AuthHandler) HandleRegisterLoginManager(w http.ResponseWriter, r *http.
 			Email: manager.Email,
 			Token: manager.Token,
 		}
-		res, err := json.Marshal(response)
+		lib.SetJsonResponse(w, http.StatusOK)
+		err = json.NewEncoder(w).Encode(response)
 		if err != nil {
 			return err
 		}
-
-		lib.WriteJsonResponse(w, http.StatusOK, res)
 	}
 
 	return nil

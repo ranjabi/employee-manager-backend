@@ -42,11 +42,11 @@ func (h *ManagerHandler) HandleGetProfile(w http.ResponseWriter, r *http.Request
 		CompanyName:     manager.CompanyName.String,
 		CompanyImageUri: manager.CompanyImageUri.String,
 	}
-	res, err := json.Marshal(response)
+	lib.SetJsonResponse(w, http.StatusOK)
+	err = json.NewEncoder(w).Encode(response)
 	if err != nil {
 		return err
 	}
 
-	lib.WriteJsonResponse(w, http.StatusOK, []byte(res))
 	return nil
 }
