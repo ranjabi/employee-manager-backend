@@ -2,7 +2,9 @@ package repositories
 
 import (
 	"context"
+	"employee-manager/lib"
 	"employee-manager/models"
+	"employee-manager/types"
 	"fmt"
 
 	"github.com/jackc/pgx/v5"
@@ -58,4 +60,22 @@ func (r *DepartmentRepository) Save(department models.Department) (*models.Depar
 	}
 
 	return &newDepartment, nil
+}
+
+func (r *DepartmentRepository) PartialUpdate(id string, payload types.UpdateDepartmentProfilePayload) (*models.Department, error) {
+	query, args, err := lib.BuildPartialUpdateQuery("departments", "id", id, &payload)
+	if err != nil {
+		return nil, err
+	}
+	rows, err := r.pgConn.Query(r.ctx, query, args)
+	if err != nil {
+		return nil, fmt.Errorf("QUERY: %#v\nARGS: %#v\nROWS: %#v\n%v", query, args, rows, err.Error())
+	}
+
+	department, err := pgx.CollectExactlyOneRow(rows, pgx.RowToStructByName[models.Department])
+	if err != nil {
+		return nil, err
+	}
+
+	return &department, nil
 }

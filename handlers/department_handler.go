@@ -4,6 +4,7 @@ import (
 	"employee-manager/lib"
 	"employee-manager/models"
 	"employee-manager/services"
+	"employee-manager/types"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -18,44 +19,6 @@ type DepartmentHandler struct {
 
 func NewDepartmentHandler(departmentService services.DepartmentService) DepartmentHandler {
 	return DepartmentHandler{departmentService}
-}
-
-func (h *DepartmentHandler) HandleCreateDepartment(w http.ResponseWriter, r *http.Request) error {
-	payload := struct {
-		Name string `json:"name" validate:"required,min=4,max=33"`
-	}{}
-	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
-		return models.NewError(http.StatusBadRequest, err.Error())
-	}
-	validate := validator.New(validator.WithRequiredStructEnabled())
-	if err := validate.Struct(payload); err != nil {
-		for _, err := range err.(validator.ValidationErrors) {
-			validationErr := fmt.Errorf("validation for '%s' failed", err.Field())
-			return models.NewError(http.StatusBadRequest, validationErr.Error())
-		}
-	}
-
-	newDepartment, err := h.departmentService.CreateDepartment(models.Department{
-		Name: payload.Name,
-	})
-	if err != nil {
-		return err
-	}
-
-	res := struct {
-		DepartmentId string `json:"departmentId"`
-		Name         string `json:"name"`
-	}{
-		DepartmentId: newDepartment.Id,
-		Name: newDepartment.Name,
-	}
-	lib.SetJsonResponse(w, http.StatusCreated)
-	err = json.NewEncoder(w).Encode(res)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func (h *DepartmentHandler) HandleGetAllDepartment(w http.ResponseWriter, r *http.Request) error {
@@ -95,5 +58,78 @@ func (h *DepartmentHandler) HandleGetAllDepartment(w http.ResponseWriter, r *htt
 		return err
 	}
 	
+	return nil
+}
+
+func (h *DepartmentHandler) HandleUpdateDepartment(w http.ResponseWriter, r *http.Request) error {
+	id := r.PathValue("id")
+	payload := types.UpdateDepartmentProfilePayload{}
+	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+		return models.NewError(http.StatusBadRequest, err.Error())
+	}
+	validate := validator.New(validator.WithRequiredStructEnabled())
+	if err := validate.Struct(payload); err != nil {
+		for _, err := range err.(validator.ValidationErrors) {
+			validationErr := fmt.Errorf("validation for '%s' failed", err.Field())
+			return models.NewError(http.StatusBadRequest, validationErr.Error())
+		}
+	}
+
+	department, err := h.departmentService.PartialUpdate(id, payload)
+	if err != nil {
+		return err
+	}
+
+	res := struct {
+		DepartmentId string `json:"departmentId"`
+		Name         string `json:"name"`
+	}{
+		DepartmentId: department.Id,
+		Name: department.Name,
+	}
+	lib.SetJsonResponse(w, http.StatusCreated)
+	err = json.NewEncoder(w).Encode(res)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (h *DepartmentHandler) HandleCreateDepartment(w http.ResponseWriter, r *http.Request) error {
+	payload := struct {
+		Name string `json:"name" validate:"required,min=4,max=33"`
+	}{}
+	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+		return models.NewError(http.StatusBadRequest, err.Error())
+	}
+	validate := validator.New(validator.WithRequiredStructEnabled())
+	if err := validate.Struct(payload); err != nil {
+		for _, err := range err.(validator.ValidationErrors) {
+			validationErr := fmt.Errorf("validation for '%s' failed", err.Field())
+			return models.NewError(http.StatusBadRequest, validationErr.Error())
+		}
+	}
+
+	newDepartment, err := h.departmentService.CreateDepartment(models.Department{
+		Name: payload.Name,
+	})
+	if err != nil {
+		return err
+	}
+
+	res := struct {
+		DepartmentId string `json:"departmentId"`
+		Name         string `json:"name"`
+	}{
+		DepartmentId: newDepartment.Id,
+		Name: newDepartment.Name,
+	}
+	lib.SetJsonResponse(w, http.StatusCreated)
+	err = json.NewEncoder(w).Encode(res)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }

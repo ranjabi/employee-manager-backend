@@ -7,3 +7,7 @@ type UpdateManagerProfilePayload = struct {
 	CompanyName     *string `json:"companyName,omitempty" db:"company_name" validate:"omitempty,min=4,max=52"`
 	CompanyImageUri *string `json:"companyImageUri,omitempty" db:"company_image_uri" validate:"omitempty,uri"`
 }
+
+type UpdateDepartmentProfilePayload = struct {
+	Name            *string `json:"name,omitempty" db:"name" validate:"omitempty,min=4,max=33"`
+}
