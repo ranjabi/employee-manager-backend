@@ -21,3 +21,12 @@ func (s *DepartmentService) CreateDepartment(department models.Department) (*mod
 
 	return newDepartment, nil
 }
+
+func (s *DepartmentService) GetAllDepartment(offset int, limit int, name string) ([]models.Department, error) {
+	departments, err := s.departmentRepository.GetAllDepartment(offset, limit, name)
+	if err != nil {
+		return nil, err
+	}
+
+	return departments, nil
+}

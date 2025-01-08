@@ -74,6 +74,7 @@ func main() {
 			r.Patch("/user", AppHandler(managerHandler.HandleUpdateProfile))
 
 			r.Post("/department", AppHandler(departmentHandler.HandleCreateDepartment))
+			r.Get("/department", AppHandler(departmentHandler.HandleGetAllDepartment))
 		})
 	})
 

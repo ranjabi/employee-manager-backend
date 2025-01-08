@@ -68,7 +68,8 @@ func (s *AuthService) CreateManager(manager models.Manager) (*models.Manager, er
 
 func CheckPasswordHash(hash, password string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
-	return err != nil
+
+	return err == nil
 }
 
 func (s *AuthService) Login(email string, password string) (*models.Manager, error) {
