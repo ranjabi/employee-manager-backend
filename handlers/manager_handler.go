@@ -71,7 +71,8 @@ func (h *ManagerHandler) HandleUpdateProfile(w http.ResponseWriter, r *http.Requ
 	if err != nil {
 		return models.NewError(http.StatusInternalServerError, err.Error())
 	}
-	manager, err := h.managerService.PartialUpdate(claims["manager_id"].(string), payload)
+	managerId := claims["manager_id"].(string)
+	manager, err := h.managerService.PartialUpdate(managerId, payload)
 	if err != nil {
 		return err
 	}

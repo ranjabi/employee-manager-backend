@@ -4,7 +4,7 @@ test:
 	echo $(1)
 	
 mig.create:
-	migrate create -ext sql -dir db/migrationss -seq $(n)
+	migrate create -ext sql -dir db/migrations -seq $(n)
 
 mig.up:
 	migrate -database ${POSTGRESQL_URL} -path db/migrations up

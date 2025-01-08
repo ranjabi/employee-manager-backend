@@ -75,7 +75,8 @@ func main() {
 
 			r.Post("/department", AppHandler(departmentHandler.HandleCreateDepartment))
 			r.Get("/department", AppHandler(departmentHandler.HandleGetAllDepartment))
-			r.Patch("/department/{id}", AppHandler(departmentHandler.HandleUpdateDepartment))
+			r.Patch("/department/{departmentId}", AppHandler(departmentHandler.HandleUpdateDepartment))
+			r.Delete("/department/{departmentId}", AppHandler(departmentHandler.HandleDeleteDepartment))
 		})
 	})
 

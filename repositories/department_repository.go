@@ -6,6 +6,7 @@ import (
 	"employee-manager/models"
 	"employee-manager/types"
 	"fmt"
+	"net/http"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -24,7 +25,8 @@ func (r *DepartmentRepository) GetAllDepartment(offset int, limit int, name stri
 	query := fmt.Sprintf(`
 	SELECT * 
 	FROM departments
-	WHERE LOWER(name) LIKE '%%%s%%'
+	WHERE 
+		LOWER(name) LIKE '%%%s%%' 
 	ORDER BY created_at
 	LIMIT @limit
 	OFFSET @offset
@@ -47,10 +49,11 @@ func (r *DepartmentRepository) GetAllDepartment(offset int, limit int, name stri
 
 func (r *DepartmentRepository) Save(department models.Department) (*models.Department, error) {
 	query := `
-	INSERT INTO departments (name) VALUES (@name) RETURNING *
+	INSERT INTO departments (name, manager_id) VALUES (@name, @manager_id) RETURNING *
 	`
 	args := pgx.NamedArgs{
 		"name": department.Name,
+		"manager_id": department.ManagerId,
 	}
 
 	rows, _ := r.pgConn.Query(r.ctx, query, args)
@@ -78,4 +81,20 @@ func (r *DepartmentRepository) PartialUpdate(id string, payload types.UpdateDepa
 	}
 
 	return &department, nil
+}
+
+func (r *DepartmentRepository) Delete(id string) error {
+	query := `DELETE FROM departments WHERE id = @id`
+	args := pgx.NamedArgs{
+		"id": id,
+	}
+	commandTag, err := r.pgConn.Exec(r.ctx, query, args); 
+	if err != nil {
+		return err
+	}
+	if commandTag.RowsAffected() == 0 {
+		return models.NewError(http.StatusNotFound, "")
+	}
+
+	return nil
 }

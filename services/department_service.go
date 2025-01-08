@@ -40,3 +40,12 @@ func (s *DepartmentService) PartialUpdate(id string, payload types.UpdateDepartm
 
 	return department, nil
 }
+
+func (s *DepartmentService) Delete(id string) error {
+	err := s.departmentRepository.Delete(id)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
