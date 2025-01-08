@@ -44,11 +44,15 @@ func main() {
 	pgConn := db.Setup(ctx)
 
 	managerRepository := repositories.NewManagerRepository(ctx, pgConn)
-	authService := services.NewAuthService(managerRepository)
-	authHandler := handlers.NewAuthHandler(authService)
+	departmentRepository := repositories.NewDepartmentRepository(ctx, pgConn)
 
+	authService := services.NewAuthService(managerRepository)
 	managerService := services.NewManagerService(managerRepository)
+	departmentService := services.NewDepartmentService(departmentRepository)
+
+	authHandler := handlers.NewAuthHandler(authService)
 	managerHandler := handlers.NewManagerHandler(managerService)
+	departmentHandler := handlers.NewDepartmentHandler(departmentService)
 
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
@@ -68,6 +72,8 @@ func main() {
 
 			r.Get("/user", AppHandler(managerHandler.HandleGetProfile))
 			r.Patch("/user", AppHandler(managerHandler.HandleUpdateProfile))
+
+			r.Post("/department", AppHandler(departmentHandler.HandleCreateDepartment))
 		})
 	})
 
