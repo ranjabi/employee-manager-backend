@@ -70,6 +70,7 @@ func (r *ManagerRepository) PartialUpdate(id string, payload types.UpdateManager
 }
 
 func (r *ManagerRepository) Save(manager models.Manager) (*models.Manager, error) {
+	// TODO reorder to top
 	query := `
 	INSERT INTO managers (
 		email,

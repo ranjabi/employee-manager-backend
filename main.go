@@ -45,14 +45,17 @@ func main() {
 
 	managerRepository := repositories.NewManagerRepository(ctx, pgConn)
 	departmentRepository := repositories.NewDepartmentRepository(ctx, pgConn)
+	employeeRepository := repositories.NewEmployeeRepository(ctx, pgConn)
 
 	authService := services.NewAuthService(managerRepository)
 	managerService := services.NewManagerService(managerRepository)
 	departmentService := services.NewDepartmentService(departmentRepository)
+	employeeService := services.NewEmployeeService(employeeRepository)
 
 	authHandler := handlers.NewAuthHandler(authService)
 	managerHandler := handlers.NewManagerHandler(managerService)
 	departmentHandler := handlers.NewDepartmentHandler(departmentService)
+	employeeHandler := handlers.NewEmployeeHandler(employeeService)
 
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
@@ -77,6 +80,8 @@ func main() {
 			r.Get("/department", AppHandler(departmentHandler.HandleGetAllDepartment))
 			r.Patch("/department/{departmentId}", AppHandler(departmentHandler.HandleUpdateDepartment))
 			r.Delete("/department/{departmentId}", AppHandler(departmentHandler.HandleDeleteDepartment))
+
+			r.Post("/employee", AppHandler(employeeHandler.HandleCreateEmployee))
 		})
 	})
 
