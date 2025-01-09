@@ -10,7 +10,7 @@ CREATE TABLE employees (
     gender              gender NOT NULL,
     department_id       uuid NOT NULL,
 
-    FOREIGN KEY (department_id) REFERENCES departments(id) ON DELETE CASCADE
+    FOREIGN KEY (department_id) REFERENCES departments(id) ON DELETE RESTRICT
 );
 
 COMMIT;

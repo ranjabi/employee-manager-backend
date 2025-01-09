@@ -146,7 +146,6 @@ func (h *DepartmentHandler) HandleUpdateDepartment(w http.ResponseWriter, r *htt
 }
 
 func (h *DepartmentHandler) HandleDeleteDepartment(w http.ResponseWriter, r *http.Request) error {
-	// TOOD 409 Conflict for Still contain employee
 	departmentId := r.PathValue("departmentId")
 
 	err := h.departmentService.Delete(departmentId)
