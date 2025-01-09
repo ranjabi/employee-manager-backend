@@ -14,8 +14,8 @@ func NewDepartmentService(departmentRepository repositories.DepartmentRepository
 	return DepartmentService{departmentRepository}
 }
 
-func (s *DepartmentService) GetAllDepartment(offset int, limit int, name string) ([]models.Department, error) {
-	departments, err := s.departmentRepository.GetAllDepartment(offset, limit, name)
+func (s *DepartmentService) GetAllDepartment(offset int, limit int, name string, managerId string) ([]models.Department, error) {
+	departments, err := s.departmentRepository.GetAllDepartment(offset, limit, name, managerId)
 	if err != nil {
 		return nil, err
 	}

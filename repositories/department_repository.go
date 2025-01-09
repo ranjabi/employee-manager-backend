@@ -21,12 +21,13 @@ func NewDepartmentRepository(ctx context.Context, pgConn *pgxpool.Pool) Departme
 	return DepartmentRepository{ctx, pgConn}
 }
 
-func (r *DepartmentRepository) GetAllDepartment(offset int, limit int, name string) ([]models.Department, error) {
+func (r *DepartmentRepository) GetAllDepartment(offset int, limit int, name string, managerId string) ([]models.Department, error) {
 	query := fmt.Sprintf(`
 	SELECT * 
 	FROM departments
 	WHERE 
-		LOWER(name) LIKE '%%%s%%' 
+		LOWER(name) LIKE '%%%s%%'
+		AND manager_id = @manager_id
 	ORDER BY created_at
 	LIMIT @limit
 	OFFSET @offset
@@ -34,6 +35,7 @@ func (r *DepartmentRepository) GetAllDepartment(offset int, limit int, name stri
 	args := pgx.NamedArgs{
 		"limit": limit,
 		"offset": offset,
+		"manager_id": managerId,
 	}
 	rows, err := r.pgConn.Query(r.ctx, query, args)
 	if err != nil {

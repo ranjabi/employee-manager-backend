@@ -23,7 +23,6 @@ func NewDepartmentHandler(departmentService services.DepartmentService) Departme
 }
 
 func (h *DepartmentHandler) HandleGetAllDepartment(w http.ResponseWriter, r *http.Request) error {
-	// TODO only return department created by the manager
 	limit := 5
 	offset := 0
 	params := r.URL.Query()	
@@ -49,7 +48,12 @@ func (h *DepartmentHandler) HandleGetAllDepartment(w http.ResponseWriter, r *htt
 		}
 	}
 	
-	departments, err := h.departmentService.GetAllDepartment(offset, limit, name)
+	_, claims, err := jwtauth.FromContext(r.Context())
+	if err != nil {
+		return models.NewError(http.StatusInternalServerError, err.Error())
+	}
+	managerId := claims["manager_id"].(string)
+	departments, err := h.departmentService.GetAllDepartment(offset, limit, name, managerId)
 	if err != nil {
 		return err
 	}
