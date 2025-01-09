@@ -82,6 +82,7 @@ func main() {
 			r.Delete("/department/{departmentId}", AppHandler(departmentHandler.HandleDeleteDepartment))
 
 			r.Post("/employee", AppHandler(employeeHandler.HandleCreateEmployee))
+			r.Get("/employee", AppHandler(employeeHandler.HandleGetAllEmployee))
 		})
 	})
 

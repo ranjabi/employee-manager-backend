@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/go-playground/validator/v10"
 )
@@ -55,5 +56,48 @@ func (h *EmployeeHandler) HandleCreateEmployee(w http.ResponseWriter, r *http.Re
 		return err
 	}
 
+	return nil
+}
+
+func (h *EmployeeHandler) HandleGetAllEmployee(w http.ResponseWriter, r *http.Request) error {
+	params := r.URL.Query()	
+	identityNumber := params.Get("identityNumber")
+	name := params.Get("name")
+	gender := params.Get("gender")
+	departmentId := params.Get("departmentId")
+	limitStr := params.Get("limit")
+	offsetStr := params.Get("offset")
+	limit := 5
+	offset := 0
+	if limitStr != "" {
+		limitTemp, err := strconv.Atoi(limitStr); 
+		if err != nil {
+			return models.NewError(http.StatusBadRequest, err.Error())
+		}
+		if limitTemp >= 0 {
+			limit = limitTemp
+		}
+	}
+	if offsetStr != "" {
+		offsetTemp, err := strconv.Atoi(offsetStr)
+		if err != nil {
+			return models.NewError(http.StatusBadRequest, err.Error())
+		}
+		if offsetTemp >= 0 {
+			offset = offsetTemp
+		}
+	}
+
+	employees, err := h.employeeService.GetAllEmployee(offset, limit, identityNumber, name, gender, departmentId)
+	if err != nil {
+		return err
+	}
+
+	lib.SetJsonResponse(w, http.StatusOK)
+	err = json.NewEncoder(w).Encode(employees)
+	if err != nil {
+		return err
+	}
+	
 	return nil
 }

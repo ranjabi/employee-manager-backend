@@ -10,6 +10,55 @@ VALUES ('e818019e-c8e0-4d20-8428-ddeeeafa3260', 'dept-a-1', '4e0cac8a-eb8c-4c6c-
 INSERT INTO departments (id, name, manager_id)
 VALUES ('f6fd290b-d95c-42c3-99b4-c069f3a0049d', 'dept-b-1', '614d4eb6-28e2-4771-ba61-24fa6182795b');
 
+INSERT INTO employees (
+    id
+    ,identity_number
+    ,name
+    ,employee_image_uri
+    ,gender
+    ,department_id
+) 
+VALUES (
+    '626f360a-1b72-4f1c-9c37-5bc6d8adc1d1'
+    ,'iden1emp'
+    ,'emp1name'
+    ,'http://www.google.com'
+    ,'male'
+    ,'e818019e-c8e0-4d20-8428-ddeeeafa3260'
+);
+INSERT INTO employees (
+    id
+    ,identity_number
+    ,name
+    ,employee_image_uri
+    ,gender
+    ,department_id
+) 
+VALUES (
+    'eeb4eae1-d3a4-41ec-80a5-bdec6b5b6b0b'
+    ,'iden1emp2'
+    ,'emp1name2'
+    ,'http://www.google.com'
+    ,'male'
+    ,'e818019e-c8e0-4d20-8428-ddeeeafa3260'
+);
+INSERT INTO employees (
+    id
+    ,identity_number
+    ,name
+    ,employee_image_uri
+    ,gender
+    ,department_id
+) 
+VALUES (
+    'b48cfe2b-c225-4ad2-b1c3-8acf3249fac6'
+    ,'iden2emp'
+    ,'emp2name'
+    ,'http://www.google.com'
+    ,'female'
+    ,'f6fd290b-d95c-42c3-99b4-c069f3a0049d'
+);
+
 COMMIT;
 
 -- {

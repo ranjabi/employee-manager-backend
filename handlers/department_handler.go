@@ -101,6 +101,7 @@ func (h *DepartmentHandler) HandleGetAllDepartment(w http.ResponseWriter, r *htt
 	if err != nil {
 		return err
 	}
+	
 	lib.SetJsonResponse(w, http.StatusOK)
 	err = json.NewEncoder(w).Encode(departments)
 	if err != nil {

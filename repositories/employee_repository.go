@@ -55,3 +55,34 @@ func (r *EmployeeRepository) Save(employee models.Employee) (*models.Employee, e
 
 	return &newEmployee, nil
 }
+
+func (r *EmployeeRepository) GetAllEmployee(offset int, limit int, identityNumber string, name string, gender string, departmentId string) ([]models.Employee, error) {
+	query := fmt.Sprintf(`
+	SELECT * 
+	FROM employees
+	WHERE 
+		LOWER(identity_number) LIKE '%%%s%%'
+		AND LOWER(name) LIKE '%%%s%%'
+		AND gender = '%s'
+		AND department_id = '%s'
+	ORDER BY created_at
+	LIMIT @limit
+	OFFSET @offset
+	`, identityNumber, name, gender, departmentId)
+	args := pgx.NamedArgs{
+		"limit": limit,
+		"offset": offset,
+	}
+	
+	rows, err := r.pgConn.Query(r.ctx, query, args)
+	if err != nil {
+		return nil, fmt.Errorf("QUERY: %#v\nARGS: %#v\nROWS: %#v\n%v", query, args, rows, err.Error())
+	}
+
+	employees, err := pgx.CollectRows(rows, pgx.RowToStructByName[models.Employee])
+	if err != nil {
+		return nil, err
+	}
+
+	return employees, nil
+}
