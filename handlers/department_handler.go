@@ -22,50 +22,6 @@ func NewDepartmentHandler(departmentService services.DepartmentService) Departme
 	return DepartmentHandler{departmentService}
 }
 
-func (h *DepartmentHandler) HandleGetAllDepartment(w http.ResponseWriter, r *http.Request) error {
-	limit := 5
-	offset := 0
-	params := r.URL.Query()	
-	limitStr := params.Get("limit")
-	offsetStr := params.Get("offset")
-	name := params.Get("name")
-	if limitStr != "" {
-		limitTemp, err := strconv.Atoi(limitStr); 
-		if err != nil {
-			return models.NewError(http.StatusBadRequest, err.Error())
-		}
-		if limitTemp >= 0 {
-			limit = limitTemp
-		}
-	}
-	if offsetStr != "" {
-		offsetTemp, err := strconv.Atoi(offsetStr)
-		if err != nil {
-			return models.NewError(http.StatusBadRequest, err.Error())
-		}
-		if offsetTemp >= 0 {
-			offset = offsetTemp
-		}
-	}
-	
-	_, claims, err := jwtauth.FromContext(r.Context())
-	if err != nil {
-		return models.NewError(http.StatusInternalServerError, err.Error())
-	}
-	managerId := claims["manager_id"].(string)
-	departments, err := h.departmentService.GetAllDepartment(offset, limit, name, managerId)
-	if err != nil {
-		return err
-	}
-	lib.SetJsonResponse(w, http.StatusOK)
-	err = json.NewEncoder(w).Encode(departments)
-	if err != nil {
-		return err
-	}
-	
-	return nil
-}
-
 func (h *DepartmentHandler) HandleCreateDepartment(w http.ResponseWriter, r *http.Request) error {
 	payload := struct {
 		Name string `json:"name" validate:"required,min=4,max=33"`
@@ -107,6 +63,50 @@ func (h *DepartmentHandler) HandleCreateDepartment(w http.ResponseWriter, r *htt
 		return err
 	}
 
+	return nil
+}
+
+func (h *DepartmentHandler) HandleGetAllDepartment(w http.ResponseWriter, r *http.Request) error {
+	limit := 5
+	offset := 0
+	params := r.URL.Query()	
+	limitStr := params.Get("limit")
+	offsetStr := params.Get("offset")
+	name := params.Get("name")
+	if limitStr != "" {
+		limitTemp, err := strconv.Atoi(limitStr); 
+		if err != nil {
+			return models.NewError(http.StatusBadRequest, err.Error())
+		}
+		if limitTemp >= 0 {
+			limit = limitTemp
+		}
+	}
+	if offsetStr != "" {
+		offsetTemp, err := strconv.Atoi(offsetStr)
+		if err != nil {
+			return models.NewError(http.StatusBadRequest, err.Error())
+		}
+		if offsetTemp >= 0 {
+			offset = offsetTemp
+		}
+	}
+	
+	_, claims, err := jwtauth.FromContext(r.Context())
+	if err != nil {
+		return models.NewError(http.StatusInternalServerError, err.Error())
+	}
+	managerId := claims["manager_id"].(string)
+	departments, err := h.departmentService.GetAllDepartment(offset, limit, name, managerId)
+	if err != nil {
+		return err
+	}
+	lib.SetJsonResponse(w, http.StatusOK)
+	err = json.NewEncoder(w).Encode(departments)
+	if err != nil {
+		return err
+	}
+	
 	return nil
 }
 

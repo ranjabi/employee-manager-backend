@@ -18,15 +18,6 @@ func NewDepartmentService(departmentRepository repositories.DepartmentRepository
 	return DepartmentService{departmentRepository}
 }
 
-func (s *DepartmentService) GetAllDepartment(offset int, limit int, name string, managerId string) ([]models.Department, error) {
-	departments, err := s.departmentRepository.GetAllDepartment(offset, limit, name, managerId)
-	if err != nil {
-		return nil, err
-	}
-
-	return departments, nil
-}
-
 func (s *DepartmentService) CreateDepartment(department models.Department) (*models.Department, error) {
 	newDepartment, err := s.departmentRepository.Save(department)
 	if err != nil {
@@ -34,6 +25,15 @@ func (s *DepartmentService) CreateDepartment(department models.Department) (*mod
 	}
 
 	return newDepartment, nil
+}
+
+func (s *DepartmentService) GetAllDepartment(offset int, limit int, name string, managerId string) ([]models.Department, error) {
+	departments, err := s.departmentRepository.GetAllDepartment(offset, limit, name, managerId)
+	if err != nil {
+		return nil, err
+	}
+
+	return departments, nil
 }
 
 func (s *DepartmentService) PartialUpdate(id string, payload types.UpdateDepartmentProfilePayload) (*models.Department, error) {
