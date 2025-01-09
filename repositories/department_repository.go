@@ -21,6 +21,24 @@ func NewDepartmentRepository(ctx context.Context, pgConn *pgxpool.Pool) Departme
 	return DepartmentRepository{ctx, pgConn}
 }
 
+func (r *DepartmentRepository) Save(department models.Department) (*models.Department, error) {
+	query := `
+	INSERT INTO departments (name, manager_id) VALUES (@name, @manager_id) RETURNING *
+	`
+	args := pgx.NamedArgs{
+		"name": department.Name,
+		"manager_id": department.ManagerId,
+	}
+
+	rows, _ := r.pgConn.Query(r.ctx, query, args)
+	newDepartment, err := pgx.CollectExactlyOneRow(rows, pgx.RowToStructByName[models.Department])
+	if err != nil {
+		return nil, err
+	}
+
+	return &newDepartment, nil
+}
+
 func (r *DepartmentRepository) GetAllDepartment(offset int, limit int, name string, managerId string) ([]models.Department, error) {
 	query := fmt.Sprintf(`
 	SELECT * 
@@ -47,24 +65,6 @@ func (r *DepartmentRepository) GetAllDepartment(offset int, limit int, name stri
 	}
 
 	return departments, nil
-}
-
-func (r *DepartmentRepository) Save(department models.Department) (*models.Department, error) {
-	query := `
-	INSERT INTO departments (name, manager_id) VALUES (@name, @manager_id) RETURNING *
-	`
-	args := pgx.NamedArgs{
-		"name": department.Name,
-		"manager_id": department.ManagerId,
-	}
-
-	rows, _ := r.pgConn.Query(r.ctx, query, args)
-	newDepartment, err := pgx.CollectExactlyOneRow(rows, pgx.RowToStructByName[models.Department])
-	if err != nil {
-		return nil, err
-	}
-
-	return &newDepartment, nil
 }
 
 func (r *DepartmentRepository) PartialUpdate(id string, payload types.UpdateDepartmentProfilePayload) (*models.Department, error) {

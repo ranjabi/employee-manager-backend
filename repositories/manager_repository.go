@@ -20,6 +20,31 @@ func NewManagerRepository(ctx context.Context, pgConn *pgxpool.Pool) ManagerRepo
 	return ManagerRepository{ctx, pgConn}
 }
 
+func (r *ManagerRepository) Save(manager models.Manager) (*models.Manager, error) {
+	query := `
+	INSERT INTO managers (
+		email,
+		password
+	) 
+	VALUES (
+		LOWER(@email),
+		@password
+	)
+	RETURNING id, email
+	`
+	args := pgx.NamedArgs{
+		"email":    manager.Email,
+		"password": manager.Password,
+	}
+
+	var newManager models.Manager
+	if err := r.pgConn.QueryRow(r.ctx, query, args).Scan(&newManager.Id, &newManager.Email); err != nil {
+		return nil, err
+	}
+
+	return &newManager, nil
+}
+
 func (r *ManagerRepository) FindById(id string) (*models.Manager, error) {
 	query := `SELECT * FROM managers WHERE id = @id`
 	args := pgx.NamedArgs{
@@ -67,30 +92,4 @@ func (r *ManagerRepository) PartialUpdate(id string, payload types.UpdateManager
 	}
 
 	return &manager, nil
-}
-
-func (r *ManagerRepository) Save(manager models.Manager) (*models.Manager, error) {
-	// TODO reorder to top
-	query := `
-	INSERT INTO managers (
-		email,
-		password
-	) 
-	VALUES (
-		LOWER(@email),
-		@password
-	)
-	RETURNING id, email
-	`
-	args := pgx.NamedArgs{
-		"email":    manager.Email,
-		"password": manager.Password,
-	}
-
-	var newManager models.Manager
-	if err := r.pgConn.QueryRow(r.ctx, query, args).Scan(&newManager.Id, &newManager.Email); err != nil {
-		return nil, err
-	}
-
-	return &newManager, nil
 }
