@@ -33,16 +33,20 @@ func BuildPartialUpdateQuery(tableName, idField, idValue string, data interface{
 
 	for i := 0; i < val.NumField(); i++ {
 		fieldValue := val.Field(i)
-		fieldType := typ.Field(i)
-		fieldName := GetJSONTagName(fieldType)
+		fieldName := GetJSONTagName(typ.Field(i))
 
 		if fieldName == "" || fieldName == "-" {
 			continue
 		}
 
 		if !fieldValue.IsNil() {
-			setClauses = append(setClauses, fmt.Sprintf("%s = @%s", fieldName, fieldName))
-			args[fieldName] = fieldValue.Elem().Interface() // Dereference the pointer
+			if fieldName == idField {
+				setClauses = append(setClauses, fmt.Sprintf("%s = @%sNew", fieldName, fieldName))
+				args[fieldName + "New"] = fieldValue.Elem().Interface() // Dereference the pointer
+			} else {
+				setClauses = append(setClauses, fmt.Sprintf("%s = @%s", fieldName, fieldName))
+				args[fieldName] = fieldValue.Elem().Interface()
+			}
 			index++
 		}
 	}

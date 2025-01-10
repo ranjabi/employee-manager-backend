@@ -4,6 +4,7 @@ import (
 	"employee-manager/lib"
 	"employee-manager/models"
 	"employee-manager/services"
+	"employee-manager/types"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -95,6 +96,48 @@ func (h *EmployeeHandler) HandleGetAllEmployee(w http.ResponseWriter, r *http.Re
 
 	lib.SetJsonResponse(w, http.StatusOK)
 	err = json.NewEncoder(w).Encode(employees)
+	if err != nil {
+		return err
+	}
+	
+	return nil
+}
+
+func (h *EmployeeHandler) HandleUpdateEmployee(w http.ResponseWriter, r *http.Request) error {
+	// TODO none request body result in EOF, at least there must be { }
+	identityNumber := r.PathValue("identityNumber")
+	payload := types.UpdateEmployeePayload{}
+	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+		return models.NewError(http.StatusBadRequest, err.Error())
+	}
+	validate := validator.New(validator.WithRequiredStructEnabled())
+	if err := validate.Struct(payload); err != nil {
+		for _, err := range err.(validator.ValidationErrors) {
+			validationErr := fmt.Errorf("validation for '%s' failed", err.Field())
+			return models.NewError(http.StatusBadRequest, validationErr.Error())
+		}
+	}
+
+	employee, err := h.employeeService.PartialUpdate(identityNumber, payload)
+	if err != nil {
+		return err
+	}
+
+	res := struct {
+		IdentityNumber string `json:"identityNumber"`
+		Name string `json:"name"`
+		EmployeeImageUri string `json:"employeeImageUri"`
+		Gender string `json:"gender"`
+		DepartmentId string `json:"departmentId"`
+	}{
+		IdentityNumber: employee.IdentityNumber,
+		Name: employee.Name,
+		EmployeeImageUri: employee.EmployeeImageUri,
+		Gender: employee.Gender,
+		DepartmentId: employee.DepartmentId,
+	}
+	lib.SetJsonResponse(w, http.StatusOK)
+	err = json.NewEncoder(w).Encode(res)
 	if err != nil {
 		return err
 	}

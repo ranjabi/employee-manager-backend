@@ -4,6 +4,7 @@ import (
 	"employee-manager/constants"
 	"employee-manager/models"
 	"employee-manager/repositories"
+	"employee-manager/types"
 	"net/http"
 
 	"github.com/google/uuid"
@@ -48,4 +49,20 @@ func (s *EmployeeService) GetAllEmployee(offset int, limit int, identityNumber s
 	}
 
 	return employees, err
+}
+
+func (s *EmployeeService) PartialUpdate(identityNumber string, payload types.UpdateEmployeePayload) (*models.Employee, error) {
+	employee, err := s.employeeRepository.PartialUpdate(identityNumber, payload)
+	if err != nil {
+		if pgErr, ok := err.(*pgconn.PgError); ok && pgErr.Code == constants.FOREIGN_KEY_CONSTRAINT_VIOLATION_ERROR_CODE {
+			return nil, models.NewError(http.StatusBadRequest, "Invalid department id")
+		}
+		if pgErr, ok := err.(*pgconn.PgError); ok && pgErr.Code == constants.INVALID_INPUT_SYNTAX_TYPE_ERROR_CODE {
+			return nil, models.NewError(http.StatusBadRequest, "Invalid department id format")
+		}
+
+		return nil, err
+	}
+
+	return employee, nil
 }

@@ -2,8 +2,11 @@ package repositories
 
 import (
 	"context"
+	"employee-manager/lib"
 	"employee-manager/models"
+	"employee-manager/types"
 	"fmt"
+	"net/http"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -85,4 +88,23 @@ func (r *EmployeeRepository) GetAllEmployee(offset int, limit int, identityNumbe
 	}
 
 	return employees, nil
+}
+
+func (r *EmployeeRepository) PartialUpdate(identityNumber string, payload types.UpdateEmployeePayload) (*models.Employee, error) {
+	query, args, err := lib.BuildPartialUpdateQuery("employees", "identity_number", identityNumber, &payload)
+	if err != nil {
+		return nil, err
+	}
+	rows, err := r.pgConn.Query(r.ctx, query, args)
+	if err != nil {
+		return nil, fmt.Errorf("QUERY: %#v\nARGS: %#v\nROWS: %#v\n%v", query, args, rows, err.Error())
+	}
+	fmt.Printf("QUERY: %#v\nARGS: %#v\nROWS: %#v\n", query, args, rows)
+	employee, err := pgx.CollectExactlyOneRow(rows, pgx.RowToStructByName[models.Employee])
+	if err != nil {
+		return nil, models.NewError(http.StatusNotFound, "identityNumber is not found")
+	}
+	
+
+	return &employee, nil
 }

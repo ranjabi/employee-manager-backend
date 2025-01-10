@@ -83,6 +83,7 @@ func main() {
 
 			r.Post("/employee", AppHandler(employeeHandler.HandleCreateEmployee))
 			r.Get("/employee", AppHandler(employeeHandler.HandleGetAllEmployee))
+			r.Patch("/employee/{identityNumber}", AppHandler(employeeHandler.HandleUpdateEmployee))
 		})
 	})
 

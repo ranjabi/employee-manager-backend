@@ -54,6 +54,7 @@ func (s *DepartmentService) Delete(id string) error {
 		if pgErr, ok := err.(*pgconn.PgError); ok && pgErr.Code == constants.INVALID_INPUT_SYNTAX_TYPE_ERROR_CODE {
 			return models.NewError(http.StatusNotFound, "")
 		}
+		
 		return err
 	}
 
