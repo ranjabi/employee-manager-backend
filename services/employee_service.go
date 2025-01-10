@@ -66,3 +66,12 @@ func (s *EmployeeService) PartialUpdate(identityNumber string, payload types.Upd
 
 	return employee, nil
 }
+
+func (s *EmployeeService) Delete(identityNumber string) error {
+	err := s.employeeRepository.Delete(identityNumber)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

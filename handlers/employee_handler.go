@@ -144,3 +144,16 @@ func (h *EmployeeHandler) HandleUpdateEmployee(w http.ResponseWriter, r *http.Re
 	
 	return nil
 }
+
+func (h *EmployeeHandler) HandleDeleteEmployee(w http.ResponseWriter, r *http.Request) error {
+	identityNumber := r.PathValue("identityNumber")
+
+	err := h.employeeService.Delete(identityNumber)
+	if err != nil {
+		return err
+	}
+
+	w.Write([]byte(""))
+
+	return nil
+}

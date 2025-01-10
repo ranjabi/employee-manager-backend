@@ -108,3 +108,19 @@ func (r *EmployeeRepository) PartialUpdate(identityNumber string, payload types.
 
 	return &employee, nil
 }
+
+func (r *EmployeeRepository) Delete(identityNumber string) error {
+	query := `DELETE FROM employees WHERE identity_number = @identity_number`
+	args := pgx.NamedArgs{
+		"identity_number": identityNumber,
+	}
+	commandTag, err := r.pgConn.Exec(r.ctx, query, args); 
+	if err != nil {
+		return err
+	}
+	if commandTag.RowsAffected() == 0 {
+		return models.NewError(http.StatusNotFound, "")
+	}
+
+	return nil
+}
