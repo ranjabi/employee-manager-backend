@@ -4,7 +4,10 @@ import (
 	"context"
 	"log"
 	"net/http"
+	"os"
 
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/jwtauth/v5"
@@ -17,6 +20,18 @@ import (
 	"employee-manager/repositories"
 	"employee-manager/services"
 )
+
+var s3Client *s3.Client
+
+func initS3(ctx context.Context) error {
+	awsConfig, err := config.LoadDefaultConfig(ctx, config.WithRegion(os.Getenv("AWS_REGION")))
+	if err != nil {
+		log.Fatalf("Unable to load AWS config: %v", err)
+	}
+
+	s3Client = s3.NewFromConfig(awsConfig)
+	return nil
+}
 
 func AppHandler(fn func(http.ResponseWriter, *http.Request) error) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -42,6 +57,9 @@ func main() {
 
 	ctx := context.Background()
 	pgConn := db.Setup(ctx)
+	if err := initS3(ctx); err != nil {
+		log.Fatal(err.Error())
+	}
 
 	managerRepository := repositories.NewManagerRepository(ctx, pgConn)
 	departmentRepository := repositories.NewDepartmentRepository(ctx, pgConn)
@@ -51,11 +69,13 @@ func main() {
 	managerService := services.NewManagerService(managerRepository)
 	departmentService := services.NewDepartmentService(departmentRepository)
 	employeeService := services.NewEmployeeService(employeeRepository)
+	fileService := services.NewFileService(s3Client, ctx)
 
 	authHandler := handlers.NewAuthHandler(authService)
 	managerHandler := handlers.NewManagerHandler(managerService)
 	departmentHandler := handlers.NewDepartmentHandler(departmentService)
 	employeeHandler := handlers.NewEmployeeHandler(employeeService)
+	fileHandler := handlers.NewFileHandler(fileService)
 
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
@@ -85,6 +105,8 @@ func main() {
 			r.Get("/employee", AppHandler(employeeHandler.HandleGetAllEmployee))
 			r.Patch("/employee/{identityNumber}", AppHandler(employeeHandler.HandleUpdateEmployee))
 			r.Delete("/employee/{identityNumber}", AppHandler(employeeHandler.HandleDeleteEmployee))
+
+			r.Post("/file", AppHandler(fileHandler.HandleUploadFile))
 		})
 	})
 

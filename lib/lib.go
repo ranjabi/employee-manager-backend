@@ -3,6 +3,7 @@ package lib
 import (
 	"fmt"
 	"net/http"
+	"os"
 	"reflect"
 	"strings"
 
@@ -69,4 +70,8 @@ func BuildPartialUpdateQuery(tableName, idField, idValue string, data interface{
 	query += " RETURNING *"
 
 	return query, args, nil
+}
+
+func GenerateS3FileURL(key string) string {
+	return fmt.Sprintf("https://%s.s3.%s.amazonaws.com/%s", os.Getenv("S3_BUCKET_NAME"), os.Getenv("AWS_REGION"), key)
 }
