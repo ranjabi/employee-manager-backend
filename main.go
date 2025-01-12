@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -19,6 +20,10 @@ import (
 	"employee-manager/models"
 	"employee-manager/repositories"
 	"employee-manager/services"
+
+	"github.com/golang-migrate/migrate/v4"
+	_ "github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 )
 
 var s3Client *s3.Client
@@ -60,6 +65,22 @@ func main() {
 	if err := initS3(ctx); err != nil {
 		log.Fatal(err.Error())
 	}
+
+	fmt.Println("Running migration...")
+	migrate, err := migrate.New(
+		"file://db/migrations",
+		db.GetDbConnectionUrlFromEnv())
+	if err != nil {
+		log.Fatal("Error connecting to db:" + err.Error())
+	}
+	if err := migrate.Up(); err != nil {
+		if err.Error() == "no change" {
+			fmt.Println("no change")
+		} else {
+			log.Fatal("Migration failed:" + err.Error())
+		}
+	}
+	fmt.Println("Migration success")
 
 	managerRepository := repositories.NewManagerRepository(ctx, pgConn)
 	departmentRepository := repositories.NewDepartmentRepository(ctx, pgConn)
