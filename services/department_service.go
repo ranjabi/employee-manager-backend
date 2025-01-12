@@ -39,6 +39,10 @@ func (s *DepartmentService) GetAllDepartment(offset int, limit int, name string,
 func (s *DepartmentService) PartialUpdate(id string, payload types.UpdateDepartmentProfilePayload) (*models.Department, error) {
 	department, err := s.departmentRepository.PartialUpdate(id, payload)
 	if err != nil {
+		if pgErr, ok := err.(*pgconn.PgError); ok && pgErr.Code == constants.INVALID_INPUT_SYNTAX_TYPE_ERROR_CODE {
+			return nil, models.NewError(http.StatusNotFound, "")
+		}
+
 		return nil, err
 	}
 
