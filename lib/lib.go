@@ -3,6 +3,7 @@ package lib
 import (
 	"fmt"
 	"net/http"
+	"net/url"
 	"os"
 	"reflect"
 	"strings"
@@ -74,4 +75,17 @@ func BuildPartialUpdateQuery(tableName, idField, idValue string, data interface{
 
 func GenerateS3FileURL(key string) string {
 	return fmt.Sprintf("https://%s.s3.%s.amazonaws.com/%s", os.Getenv("S3_BUCKET_NAME"), os.Getenv("AWS_REGION"), key)
+}
+
+func IsValidHost(host string) bool {
+	return strings.Count(host, ".") > 0
+}
+
+func IsValidURI(urlString string) bool {
+	parsedURL, err := url.ParseRequestURI(urlString)
+	if err != nil {
+		return false
+	}
+
+	return IsValidHost(parsedURL.Hostname())
 }

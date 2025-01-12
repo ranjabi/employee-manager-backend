@@ -7,6 +7,7 @@ import (
 	"employee-manager/types"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 
 	"github.com/go-chi/jwtauth/v5"
@@ -55,12 +56,67 @@ func (h *ManagerHandler) HandleGetProfile(w http.ResponseWriter, r *http.Request
 }
 
 func (h *ManagerHandler) HandleUpdateProfile(w http.ResponseWriter, r *http.Request) error {
-	payload := types.UpdateManagerProfilePayload{}
-	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
 		return models.NewError(http.StatusBadRequest, err.Error())
 	}
-	validate := validator.New(validator.WithRequiredStructEnabled())
-	if err := validate.Struct(payload); err != nil {
+
+	payload := types.UpdateManagerProfilePayload{}
+	if err := json.Unmarshal([]byte(body), &payload); err != nil {
+		return models.NewError(http.StatusBadRequest, err.Error())
+	}
+
+	// TODO rewrite using for loop
+	if string(payload.EmailRaw) == "null" {
+		return models.NewError(http.StatusBadRequest, "input can't be null")
+	}
+	if string(payload.NameRaw) == "null" {
+		return models.NewError(http.StatusBadRequest, "input can't be null")
+	}
+	if string(payload.UserImageUriRaw) == "null" {
+		return models.NewError(http.StatusBadRequest, "input can't be null")
+	}
+	if string(payload.CompanyNameRaw) == "null" {
+		return models.NewError(http.StatusBadRequest, "input can't be null")
+	}
+	if string(payload.CompanyImageUriRaw) == "null" {
+		return models.NewError(http.StatusBadRequest, "input can't be null")
+	}
+
+	if payload.EmailRaw != nil {
+		if err := json.Unmarshal([]byte(payload.EmailRaw), &payload.Email); err != nil {
+			return models.NewError(http.StatusBadRequest, err.Error())
+		}
+	}
+	if payload.NameRaw != nil {
+		if err := json.Unmarshal([]byte(payload.NameRaw), &payload.Name); err != nil {
+			return models.NewError(http.StatusBadRequest, err.Error())
+		}
+	}
+	if payload.UserImageUriRaw != nil {
+		if err := json.Unmarshal([]byte(payload.UserImageUriRaw), &payload.UserImageUri); err != nil {
+			return models.NewError(http.StatusBadRequest, err.Error())
+		}
+		if !lib.IsValidURI(*payload.UserImageUri) {
+			return models.NewError(http.StatusBadRequest, "invalid uri")
+		}
+	}
+	if payload.CompanyNameRaw != nil {
+		if err := json.Unmarshal([]byte(payload.CompanyNameRaw), &payload.CompanyName); err != nil {
+			return models.NewError(http.StatusBadRequest, err.Error())
+		}
+	}
+	if payload.CompanyImageUriRaw != nil {
+		if err := json.Unmarshal([]byte(payload.CompanyImageUriRaw), &payload.CompanyImageUri); err != nil {
+			return models.NewError(http.StatusBadRequest, err.Error())
+		}
+		if !lib.IsValidURI(*payload.CompanyImageUri) {
+
+			return models.NewError(http.StatusBadRequest, "invalid uri")
+		}
+	}
+
+	if err := validator.New().Struct(payload); err != nil {
 		for _, err := range err.(validator.ValidationErrors) {
 			validationErr := fmt.Errorf("validation for '%s' failed", err.Field())
 			return models.NewError(http.StatusBadRequest, validationErr.Error())
@@ -98,5 +154,3 @@ func (h *ManagerHandler) HandleUpdateProfile(w http.ResponseWriter, r *http.Requ
 	
 	return nil
 }
-
-

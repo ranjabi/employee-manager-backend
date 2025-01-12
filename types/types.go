@@ -1,11 +1,18 @@
 package types
 
+import "encoding/json"
+
 type UpdateManagerProfilePayload struct {
-	Email           *string `json:"email,omitempty" db:"email" validate:"omitempty,email"`
-	Name            *string `json:"name,omitempty" db:"name" validate:"omitempty,min=4,max=52"`
-	UserImageUri    *string `json:"userImageUri,omitempty" db:"user_image_uri" validate:"omitempty,uri"`
-	CompanyName     *string `json:"companyName,omitempty" db:"company_name" validate:"omitempty,min=4,max=52"`
-	CompanyImageUri *string `json:"companyImageUri,omitempty" db:"company_image_uri" validate:"omitempty,uri"`
+	EmailRaw           json.RawMessage `json:"email,omitempty"`
+	NameRaw            json.RawMessage `json:"name,omitempty"`
+	UserImageUriRaw    json.RawMessage `json:"userImageUri,omitempty"`
+	CompanyNameRaw     json.RawMessage `json:"companyName,omitempty"`
+	CompanyImageUriRaw json.RawMessage `json:"companyImageUri,omitempty"`
+	Email              *string         `db:"email" validate:"omitempty,email"`
+	Name               *string         `db:"name" validate:"omitempty,min=4,max=52"`
+	UserImageUri       *string         `db:"user_image_uri" validate:"omitempty,url"`
+	CompanyName        *string         `db:"company_name" validate:"omitempty,min=4,max=52"`
+	CompanyImageUri    *string         `db:"company_image_uri" validate:"omitempty,uri"`
 }
 
 type UpdateDepartmentProfilePayload struct {
