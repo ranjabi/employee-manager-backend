@@ -54,7 +54,7 @@ func (h *AuthHandler) HandleRegisterLoginManager(w http.ResponseWriter, r *http.
 			Email: newManager.Email,
 			Token: newManager.Token,
 		}
-		lib.SetJsonResponse(w, http.StatusOK)
+		lib.SetJsonResponse(w, http.StatusCreated)
 		err = json.NewEncoder(w).Encode(response)
 		if err != nil {
 			return err
