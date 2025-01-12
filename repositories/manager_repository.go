@@ -27,7 +27,7 @@ func (r *ManagerRepository) Save(manager models.Manager) (*models.Manager, error
 		password
 	) 
 	VALUES (
-		LOWER(@email),
+		@email,
 		@password
 	)
 	RETURNING id, email
@@ -61,7 +61,7 @@ func (r *ManagerRepository) FindById(id string) (*models.Manager, error) {
 }
 
 func (r *ManagerRepository) FindByEmail(email string) (*models.Manager, error) {
-	query := `SELECT * FROM managers WHERE email = @email`
+	query := `SELECT * FROM managers WHERE LOWER(email) = LOWER(@email)`
 	args := pgx.NamedArgs{
 		"email": email,
 	}
