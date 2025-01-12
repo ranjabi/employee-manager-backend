@@ -44,7 +44,7 @@ func (r *DepartmentRepository) GetAllDepartment(offset int, limit int, name stri
 	SELECT * 
 	FROM departments
 	WHERE 
-		LOWER(name) LIKE '%%%s%%'
+		LOWER(name) LIKE LOWER('%%%s%%')
 		AND manager_id = @manager_id
 	ORDER BY created_at
 	LIMIT @limit
