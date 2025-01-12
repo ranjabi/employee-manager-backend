@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
@@ -113,6 +114,7 @@ func main() {
 			tokenAuth := jwtauth.New(constants.HASH_ALG, []byte(constants.JWT_SECRET), nil)
 			r.Use(jwtauth.Verifier(tokenAuth))
 			r.Use(jwtauth.Authenticator(tokenAuth))
+			r.Use(AllowContentType("application/json", "multipart/form-data"))
 
 			r.Get("/user", AppHandler(managerHandler.HandleGetProfile))
 			r.Patch("/user", AppHandler(managerHandler.HandleUpdateProfile))
@@ -132,4 +134,30 @@ func main() {
 	})
 
 	http.ListenAndServe(":8080", r)
+}
+
+func AllowContentType(contentTypes ...string) func(http.Handler) http.Handler {
+	allowedContentTypes := make(map[string]struct{}, len(contentTypes))
+	for _, ctype := range contentTypes {
+		allowedContentTypes[strings.TrimSpace(strings.ToLower(ctype))] = struct{}{}
+	}
+
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if r.ContentLength == 0 {
+				// Skip check for empty content body
+				next.ServeHTTP(w, r)
+				return
+			}
+
+			s := strings.ToLower(strings.TrimSpace(strings.Split(r.Header.Get("Content-Type"), ";")[0]))
+
+			if _, ok := allowedContentTypes[s]; ok {
+				next.ServeHTTP(w, r)
+				return
+			}
+
+			w.WriteHeader(http.StatusBadRequest)
+		})
+	}
 }
