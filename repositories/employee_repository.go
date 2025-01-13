@@ -66,7 +66,7 @@ func (r *EmployeeRepository) GetAllEmployee(offset int, limit int, identityNumbe
 	FROM employees
 	WHERE 
 		LOWER(identity_number) LIKE LOWER('%%%s%%')
-		AND name LIKE '%%%s%%'
+		AND lower(name) LIKE lower('%%%s%%')
 	`, identityNumber, name)
 
 	if gender != "" {
