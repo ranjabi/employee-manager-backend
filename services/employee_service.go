@@ -54,6 +54,10 @@ func (s *EmployeeService) GetAllEmployee(offset int, limit int, identityNumber s
 }
 
 func (s *EmployeeService) PartialUpdate(identityNumber string, payload types.UpdateEmployeePayload) (*models.Employee, error) {
+	if payload.DepartmentId == nil || *payload.DepartmentId == "" {
+		return nil, models.NewError(http.StatusBadRequest, "Invalid department id")
+	}
+
 	employee, err := s.employeeRepository.PartialUpdate(identityNumber, payload)
 	if err != nil {
 		if pgErr, ok := err.(*pgconn.PgError); ok && pgErr.Code == constants.FOREIGN_KEY_CONSTRAINT_VIOLATION_ERROR_CODE {
