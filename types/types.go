@@ -16,7 +16,8 @@ type UpdateManagerProfilePayload struct {
 }
 
 type UpdateDepartmentProfilePayload struct {
-	Name *string `json:"name,omitempty" db:"name" validate:"omitempty,min=4,max=33"`
+	NameRaw json.RawMessage `json:"name,omitempty"`
+	Name    *string         `db:"name" validate:"omitempty,min=4,max=33"`
 }
 
 type UpdateEmployeePayload struct {

@@ -113,12 +113,22 @@ func (h *DepartmentHandler) HandleGetAllDepartment(w http.ResponseWriter, r *htt
 
 func (h *DepartmentHandler) HandleUpdateDepartment(w http.ResponseWriter, r *http.Request) error {
 	departmentId := r.PathValue("departmentId")
+	
 	payload := types.UpdateDepartmentProfilePayload{}
 	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
 		return models.NewError(http.StatusBadRequest, err.Error())
 	}
-	validate := validator.New(validator.WithRequiredStructEnabled())
-	if err := validate.Struct(payload); err != nil {
+
+	if string(payload.NameRaw) == "null" {
+		return models.NewError(http.StatusBadRequest, "input can't be null")
+	}
+	if payload.NameRaw != nil {
+		if err := json.Unmarshal([]byte(payload.NameRaw), &payload.Name); err != nil {
+			return models.NewError(http.StatusBadRequest, err.Error())
+		}
+	}
+
+	if err := validator.New(validator.WithRequiredStructEnabled()).Struct(payload); err != nil {
 		for _, err := range err.(validator.ValidationErrors) {
 			validationErr := fmt.Errorf("validation for '%s' failed", err.Field())
 			return models.NewError(http.StatusBadRequest, validationErr.Error())
