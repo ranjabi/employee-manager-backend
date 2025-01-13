@@ -60,28 +60,40 @@ func (r *EmployeeRepository) Save(employee models.Employee) (*models.Employee, e
 }
 
 func (r *EmployeeRepository) GetAllEmployee(offset int, limit int, identityNumber string, name string, gender string, departmentId string) ([]models.Employee, error) {
+	
 	query := fmt.Sprintf(`
 	SELECT * 
 	FROM employees
 	WHERE 
-		LOWER(identity_number) LIKE '%%%s%%'
-		AND LOWER(name) LIKE '%%%s%%'
+		LOWER(identity_number) LIKE LOWER('%%%s%%')
+		AND name LIKE '%%%s%%'
+	`, identityNumber, name)
+
+	if gender != "" {
+		query += fmt.Sprintf(`
 		AND gender = '%s'
+		`, gender)
+	}
+
+	if departmentId != "" {
+		query += fmt.Sprintf(`
 		AND department_id = '%s'
+		`, departmentId)
+	}
+
+	query += `
 	ORDER BY created_at
 	LIMIT @limit
-	OFFSET @offset
-	`, identityNumber, name, gender, departmentId)
+	OFFSET @offset`
 	args := pgx.NamedArgs{
 		"limit": limit,
 		"offset": offset,
 	}
-	
 	rows, err := r.pgConn.Query(r.ctx, query, args)
 	if err != nil {
 		return nil, fmt.Errorf("QUERY: %#v\nARGS: %#v\nROWS: %#v\n%v", query, args, rows, err.Error())
 	}
-
+	
 	employees, err := pgx.CollectRows(rows, pgx.RowToStructByName[models.Employee])
 	if err != nil {
 		return nil, err
