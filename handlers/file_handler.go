@@ -6,6 +6,8 @@ import (
 	"employee-manager/services"
 	"encoding/json"
 	"net/http"
+	"path/filepath"
+	"strings"
 )
 
 type FileHandler struct {
@@ -32,8 +34,16 @@ func (h *FileHandler) HandleUploadFile(w http.ResponseWriter, r *http.Request) e
 	}
 	defer file.Close()
 
-	fileType := fileHeader.Header.Get("Content-Type")
-	if !(fileType == "image/jpeg" || fileType == "image/jpg" || fileType == "image/png") {
+	fileName := fileHeader.Filename
+	fileExt := strings.ToLower(filepath.Ext(fileName))
+
+	allowedExtensions := map[string]bool{
+		".png": true,
+		".jpg": true,
+		".jpeg": true,
+	}
+
+	if !allowedExtensions[fileExt] {
 		return models.NewError(http.StatusBadRequest, "Only jpeg, jpg, and png files are allowed") 
 	}
 
