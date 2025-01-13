@@ -32,6 +32,9 @@ func (h *EmployeeHandler) HandleCreateEmployee(w http.ResponseWriter, r *http.Re
 	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
 		return models.NewError(http.StatusBadRequest, err.Error())
 	}
+	if !lib.IsValidURI(payload.EmployeeImageUri) {
+		return models.NewError(http.StatusBadRequest, "invalid uri")
+	}
 	validate := validator.New(validator.WithRequiredStructEnabled())
 	if err := validate.Struct(payload); err != nil {
 		for _, err := range err.(validator.ValidationErrors) {
