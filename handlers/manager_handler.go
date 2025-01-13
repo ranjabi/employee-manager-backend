@@ -67,19 +67,11 @@ func (h *ManagerHandler) HandleUpdateProfile(w http.ResponseWriter, r *http.Requ
 	}
 
 	// TODO rewrite using for loop
-	if string(payload.EmailRaw) == "null" {
-		return models.NewError(http.StatusBadRequest, "input can't be null")
-	}
-	if string(payload.NameRaw) == "null" {
-		return models.NewError(http.StatusBadRequest, "input can't be null")
-	}
-	if string(payload.UserImageUriRaw) == "null" {
-		return models.NewError(http.StatusBadRequest, "input can't be null")
-	}
-	if string(payload.CompanyNameRaw) == "null" {
-		return models.NewError(http.StatusBadRequest, "input can't be null")
-	}
-	if string(payload.CompanyImageUriRaw) == "null" {
+	if string(payload.EmailRaw) == "null" ||
+		string(payload.NameRaw) == "null" ||
+		string(payload.UserImageUriRaw) == "null" ||
+		string(payload.CompanyNameRaw) == "null" ||
+		string(payload.CompanyImageUriRaw) == "null" {
 		return models.NewError(http.StatusBadRequest, "input can't be null")
 	}
 
@@ -151,6 +143,6 @@ func (h *ManagerHandler) HandleUpdateProfile(w http.ResponseWriter, r *http.Requ
 	if err != nil {
 		return err
 	}
-	
+
 	return nil
 }

@@ -21,9 +21,14 @@ type UpdateDepartmentProfilePayload struct {
 }
 
 type UpdateEmployeePayload struct {
-	IdentityNumberNew *string `json:"identityNumber,omitempty" db:"identity_number" validate:"omitempty,min=5,max=33"`
-	Name              *string `json:"name,omitempty" db:"name" validate:"omitempty,min=4,max=33"`
-	EmployeeImageUri  *string `json:"employeeImageUri,omitempty" db:"employee_image_uri" validate:"omitempty,uri"`
-	Gender            *string `json:"gender,omitempty" db:"gender" validate:"omitempty,oneof=male female"`
-	DepartmentId      *string `json:"departmentId,omitempty" db:"department_id" validate:"omitempty"`
+	IdentityNumberNewRaw json.RawMessage `json:"identityNumber,omitempty"`
+	NameRaw              json.RawMessage `json:"name,omitempty"`
+	EmployeeImageUriRaw  json.RawMessage `json:"employeeImageUri,omitempty"`
+	GenderRaw            json.RawMessage `json:"gender,omitempty"`
+	DepartmentIdRaw      json.RawMessage `json:"departmentId,omitempty"`
+	IdentityNumberNew    *string         `db:"identity_number" validate:"omitempty,min=5,max=33"`
+	Name                 *string         `db:"name" validate:"omitempty,min=4,max=33"`
+	EmployeeImageUri     *string         `db:"employee_image_uri" validate:"omitempty,uri"`
+	Gender               *string         `db:"gender" validate:"omitempty,oneof=male female"`
+	DepartmentId         *string         `db:"department_id" validate:"omitempty"`
 }

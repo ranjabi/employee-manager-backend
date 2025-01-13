@@ -113,6 +113,43 @@ func (h *EmployeeHandler) HandleUpdateEmployee(w http.ResponseWriter, r *http.Re
 	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
 		return models.NewError(http.StatusBadRequest, err.Error())
 	}
+
+	if string(payload.IdentityNumberNewRaw) == "null" ||
+		string(payload.NameRaw) == "null" ||
+		string(payload.EmployeeImageUriRaw) == "null" ||
+		string(payload.GenderRaw) == "null" ||
+		string(payload.DepartmentIdRaw) == "null" {
+		return models.NewError(http.StatusBadRequest, "input can't be null")
+	}
+	if payload.IdentityNumberNewRaw != nil {
+		if err := json.Unmarshal([]byte(payload.IdentityNumberNewRaw), &payload.IdentityNumberNew); err != nil {
+			return models.NewError(http.StatusBadRequest, err.Error())
+		}
+	}
+	if payload.NameRaw != nil {
+		if err := json.Unmarshal([]byte(payload.NameRaw), &payload.Name); err != nil {
+			return models.NewError(http.StatusBadRequest, err.Error())
+		}
+	}
+	if payload.EmployeeImageUriRaw != nil {
+		if err := json.Unmarshal([]byte(payload.EmployeeImageUriRaw), &payload.EmployeeImageUri); err != nil {
+			return models.NewError(http.StatusBadRequest, err.Error())
+		}
+		if !lib.IsValidURI(*payload.EmployeeImageUri) {
+			return models.NewError(http.StatusBadRequest, "invalid uri")
+		}
+	}
+	if payload.GenderRaw != nil {
+		if err := json.Unmarshal([]byte(payload.GenderRaw), &payload.Gender); err != nil {
+			return models.NewError(http.StatusBadRequest, err.Error())
+		}
+	}
+	if payload.DepartmentIdRaw != nil {
+		if err := json.Unmarshal([]byte(payload.DepartmentIdRaw), &payload.DepartmentId); err != nil {
+			return models.NewError(http.StatusBadRequest, err.Error())
+		}
+	}
+
 	validate := validator.New(validator.WithRequiredStructEnabled())
 	if err := validate.Struct(payload); err != nil {
 		for _, err := range err.(validator.ValidationErrors) {
